@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Quick OCR</string>
+    <string name="accessibility_desc">يلتقط صورة ويقرأ الأرقام فقط عند هز الجهاز ثم يلصقها في الخانة المحددة</string>
+</resources>
