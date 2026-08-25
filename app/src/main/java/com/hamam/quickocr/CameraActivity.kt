@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.Surface
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.camera.core.CameraSelector
@@ -66,7 +67,7 @@ class CameraActivity : ComponentActivity() {
                 previewUseCase.surfaceProvider = preview.surfaceProvider
                 imageCapture = ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .setTargetRotation(preview.display.rotation)
+                    .setTargetRotation(preview.display?.rotation ?: Surface.ROTATION_0)
                     .build()
                 provider.unbindAll()
                 provider.bindToLifecycle(
