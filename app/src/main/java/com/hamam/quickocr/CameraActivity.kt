@@ -114,9 +114,9 @@ class CameraActivity : ComponentActivity() {
             copyAssetIfMissing(dataDir, "eng.traineddata")
             val tess = TessBaseAPI()
             tess.init(filesDir.absolutePath, "eng+ara", TessBaseAPI.OEM_LSTM_ONLY)
-            tess.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK)
+            tess.setPageSegMode(6) // Tesseract PSM_SINGLE_BLOCK
             tess.setVariable(
-                TessBaseAPI.VAR_CHAR_WHITELIST,
+                "tessedit_char_whitelist",
                 "0123456789٠١٢٣٤٥٦٧٨٩"
             )
             tess.setImage(bitmap)
