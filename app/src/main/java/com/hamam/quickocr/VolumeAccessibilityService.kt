@@ -43,6 +43,7 @@ class VolumeAccessibilityService : AccessibilityService(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+   override fun onAccessibilityEvent(event: android.view.accessibility.AccessibilityEvent?) {}
     override fun onInterrupt() {}
 
     override fun onDestroy() {
