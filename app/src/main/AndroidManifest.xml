@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:theme="@style/Theme.QuickOCR"
         android:label="@string/app_name"
@@ -15,6 +18,10 @@
         </activity>
         <activity
             android:name=".CameraActivity"
+            android:exported="false"/>
+        <service
+            android:name=".QuickCaptureService"
+            android:foregroundServiceType="camera"
             android:exported="false"/>
         <service
             android:name=".VolumeAccessibilityService"
