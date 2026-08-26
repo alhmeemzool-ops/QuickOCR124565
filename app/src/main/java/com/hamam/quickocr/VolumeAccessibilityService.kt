@@ -1,21 +1,27 @@
 package com.hamam.quickocr
 
 import android.accessibilityservice.AccessibilityService
-import android.content.Intent
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.os.SystemClock
 import android.view.accessibility.AccessibilityNodeInfo
-import kotlin.math.sqrt
+import kotlin.math.abs
 
 class VolumeAccessibilityService : AccessibilityService(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
-    private var lastShake = 0L
+
+    private val gravity = FloatArray(3)
+    private var lastSign = 0
+    private var crossCount = 0
+    private var lastCrossTime = 0L
+    private var lastTrigger = 0L
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -28,22 +34,51 @@ class VolumeAccessibilityService : AccessibilityService(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
 
-        val acceleration = sqrt(
-            event.values[0] * event.values[0] +
-                event.values[1] * event.values[1] +
-                event.values[2] * event.values[2]
-        )
+        val alpha = 0.8f
+        gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0]
+        gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1]
+        gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2]
+
+        val x = event.values[0] - gravity[0]
+        val y = event.values[1] - gravity[1]
+        val z = event.values[2] - gravity[2]
+
         val now = SystemClock.elapsedRealtime()
-        if (acceleration > 22f && now - lastShake > 1800L) {
-            lastShake = now
-            val intent = Intent(this, CameraActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
+
+        if (now - lastCrossTime > 900L) {
+            crossCount = 0
+            lastSign = 0
+        }
+
+        val horizontalDominant = abs(x) > abs(y) * 1.3f && abs(x) > abs(z) * 1.3f
+        if (horizontalDominant && abs(x) > 7f) {
+            val sign = if (x > 0) 1 else -1
+            if (sign != lastSign) {
+                lastSign = sign
+                crossCount++
+                lastCrossTime = now
+            }
+        }
+
+        if (crossCount >= 4 && now - lastTrigger > 2500L) {
+            crossCount = 0
+            lastSign = 0
+            lastTrigger = now
+            triggerCapture()
+        }
+    }
+
+    private fun triggerCapture() {
+        val intent = Intent(this, QuickCaptureService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-   override fun onAccessibilityEvent(event: android.view.accessibility.AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(event: android.view.accessibility.AccessibilityEvent?) {}
     override fun onInterrupt() {}
 
     override fun onDestroy() {
